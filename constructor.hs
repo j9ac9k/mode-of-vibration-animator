@@ -2,6 +2,7 @@ module Project where
 
 import Numeric.LinearAlgebra
 import Data.List
+import Data.Set
 import Data.HashMap.Strict as M
 
 list_nodes :: [(Int, (Double, Double))]
@@ -9,6 +10,10 @@ list_nodes = [(1, (0, 0)),
               (2, (1, 0)),
               (3, (0, 1)),
               (4, (1, 1))]
+
+list_node_fixtures :: [(Int, (Bool, Bool))]
+list_node_fixtures = [(1, (True, True)),
+                     (2, (False, True))]
 
 list_edges :: [(Int, (Int, Int))]
 list_edges = [(1, (1, 3)),
@@ -19,6 +24,7 @@ list_edges = [(1, (1, 3)),
 
 nodes = M.fromList list_nodes
 edges = M.fromList list_edges
+fixtures = M.fromList list_node_fixtures
 
 elastic_mod = 400000000.0 :: Double
 rho = 7850.0 :: Double
@@ -35,7 +41,7 @@ calc_length edge_id = sqrt(delta_x * delta_x + delta_y * delta_y)
           delta_x = x2 - x1
           delta_y = y2 - y1
           
-superposition_matrices :: Foldable t => t (Matrix R) -> Matrix R
+superposition_matrices :: Foldable t => t (Matrix Double) -> Matrix Double
 superposition_matrices = Prelude.foldr (+) (((2 * M.size nodes)><(2 * M.size nodes)) (repeat 0))
 
 index_x1 :: (Int, Int) -> Int
@@ -83,7 +89,7 @@ y2_y2 edge_id = index_y2 connections * 2 * M.size nodes + index_y2 connections
     where connections = M.lookupDefault (0, 0) edge_id edges
 
 base_list :: [Double]
-base_list = take (4 * M.size nodes * M.size nodes) (repeat 0)
+base_list = Data.List.take (4 * M.size nodes * M.size nodes) (repeat 0)
 
 gen_mass_list :: Int -> Int -> Double -> Double
 gen_mass_list index edge_id value
@@ -122,12 +128,76 @@ all_mass_lists = [elemental_mass_list edge_id | edge_id <- M.keys edges]
 all_stiffness_lists :: [Matrix Double]
 all_stiffness_lists = [elemental_stiffness_list edge_id | edge_id <- M.keys edges]
 
-mass_matrix :: Matrix R
+mass_matrix :: Matrix Double
 mass_matrix = superposition_matrices all_mass_lists
 
-stiffness_matrix :: Matrix R
+stiffness_matrix :: Matrix Double
 stiffness_matrix = superposition_matrices all_stiffness_lists
 
+remove_row :: Element a => Int -> Matrix a -> Matrix a
+remove_row row matrix = fromLists (h ++ (tail t))
+        where (h, t) = Data.List.splitAt row (toLists matrix)
+
+remove_col :: Element a => Int -> Matrix a -> Matrix a
+remove_col col matrix = fromLists [h ++ (tail t)| row <- toLists matrix, let (h, t) = Data.List.splitAt col row]
+
+remove_row_col :: Element a => Int -> Matrix a -> Matrix a
+remove_row_col index matrix = remove_col index (remove_row index matrix)
+
+indexes_to_remove :: [(Int, (Bool, Bool))] -> [Int]
+indexes_to_remove [] = []
+indexes_to_remove (x:xs)
+        | x_fixed && y_fixed = 2 * id - 2 : 2 * id - 1 : indexes_to_remove xs
+        | x_fixed && not y_fixed = 2 * id - 2 : indexes_to_remove xs
+        | not x_fixed && y_fixed = 2 * id - 1 : indexes_to_remove xs
+        where
+            id = fst x
+            x_fixed = fst (snd x)
+            y_fixed = snd (snd x)
+
+ordered_indexes_to_remove :: [Int]
+ordered_indexes_to_remove = reverse(sort(indexes_to_remove list_node_fixtures))
+
+slim_global_matrices :: Element a => [Int] -> Matrix a -> Matrix a
+slim_global_matrices [] matrix = matrix
+slim_global_matrices (x:xs) matrix = slim_global_matrices xs (remove_row_col x matrix)
+
+slimmed_mass_matrix :: Matrix Double
+slimmed_mass_matrix = slim_global_matrices ordered_indexes_to_remove mass_matrix
+
+slimmed_stiffness_matrix :: Matrix Double
+slimmed_stiffness_matrix = slim_global_matrices ordered_indexes_to_remove stiffness_matrix
+
+l :: Vector Double
+v :: Matrix Double
+(l, v) = geigSH (trustSym slimmed_stiffness_matrix) (trustSym slimmed_mass_matrix)
+
+-- need to reinsert 0's into v
+
+zero_row :: [Double]
+zero_row = Data.List.take (cols v) (repeat 0)
+
+inserted_indexes :: Set Int
+inserted_indexes = Data.Set.fromList ordered_indexes_to_remove
+
+merge_v :: [[Double]] -> [[Double]]
+merge_v [] = []
+merge_v xs = merge_v' xs 0
+    where
+        merge_v' (x:xs) index
+                | Data.Set.member index inserted_indexes = zero_row : merge_v' (x:xs) (index + 1)
+                | xs == []                               = [x]
+                | otherwise                              = x : merge_v' xs (index + 1)
+
+padded_v :: Matrix Double
+padded_v = fromLists (merge_v (toLists v))
+
+eigen_pairs :: [(Double, [Double])]
+eigen_pairs = sort [(sqrt (maximum [0, eigenvalue] / (2 * pi)), eigenvector) | (eigenvalue, eigenvector) <- zip (Numeric.LinearAlgebra.toList l) (toLists (tr padded_v)), eigenvalue > 1]
+
+to_animate :: [Double]
+freq :: Double
+(freq, to_animate) = head eigen_pairs
 
 
 -- V = [ 0., 0., -0.03174424, 0., -0.02270762, 0., -0.02524252, 0.]
