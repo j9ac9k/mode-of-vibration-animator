@@ -32,3 +32,8 @@ list_edges = [(1, (1, 2)),
               (13, (7, 8)),
               (14, (7, 9)),
               (15, (8, 9))]
+
+elastic_mod = 400000000.0 :: Double
+rho = 7850.0 :: Double
+cross_sec_area = 0.04361282 :: Double
+              

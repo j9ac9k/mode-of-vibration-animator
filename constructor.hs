@@ -4,17 +4,12 @@ import Numeric.LinearAlgebra
 import Data.List
 import Data.Set
 import Data.HashMap.Strict as M
-import BridgeStructure as Structure
+import PowerlineStructure as Structure
 
 
 nodes = M.fromList Structure.list_nodes
 edges = M.fromList Structure.list_edges
 fixtures = M.fromList Structure.list_node_fixtures
-
-elastic_mod = 400000000.0 :: Double
-rho = 7850.0 :: Double
-cross_sec_area = 0.04361282 :: Double
-
 
 -- better error handling for imporper lookups?
 
@@ -88,7 +83,7 @@ gen_mass_list index edge_id value
     | index == y2_y2 edge_id = 2 * m + value
     | otherwise              = value
     where
-        m = rho * cross_sec_area * truss_length / 6
+        m = Structure.rho * Structure.cross_sec_area * truss_length / 6
         truss_length = calc_length edge_id
 
 gen_stiffness_list :: Int -> Int -> Double -> Double
@@ -99,7 +94,7 @@ gen_stiffness_list index edge_id value
     | index == x2_x2 edge_id = value + k
     | otherwise              = value
     where
-        k = elastic_mod * cross_sec_area / (calc_length edge_id)
+        k = Structure.elastic_mod * Structure.cross_sec_area / (calc_length edge_id)
 
 elemental_mass_list :: Int -> Matrix Double
 elemental_mass_list edge_id = ((2 * M.size nodes)><(2 * M.size nodes))[gen_mass_list index edge_id value | (index, edge_id, value) <- zip3 [0..] (repeat edge_id) base_list]
