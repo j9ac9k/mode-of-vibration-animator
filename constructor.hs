@@ -1,30 +1,15 @@
-module Project where
+module Constructor where
 
 import Numeric.LinearAlgebra
 import Data.List
 import Data.Set
 import Data.HashMap.Strict as M
+import BridgeStructure as Structure
 
-list_nodes :: [(Int, (Double, Double))]
-list_nodes = [(1, (0, 0)),
-              (2, (1, 0)),
-              (3, (0, 1)),
-              (4, (1, 1))]
 
-list_node_fixtures :: [(Int, (Bool, Bool))]
-list_node_fixtures = [(1, (True, True)),
-                     (2, (False, True))]
-
-list_edges :: [(Int, (Int, Int))]
-list_edges = [(1, (1, 3)),
-              (2, (2, 4)),
-              (3, (3, 4)),
-              (4, (1, 4)),
-              (5, (2, 3))]
-
-nodes = M.fromList list_nodes
-edges = M.fromList list_edges
-fixtures = M.fromList list_node_fixtures
+nodes = M.fromList Structure.list_nodes
+edges = M.fromList Structure.list_edges
+fixtures = M.fromList Structure.list_node_fixtures
 
 elastic_mod = 400000000.0 :: Double
 rho = 7850.0 :: Double
@@ -184,10 +169,11 @@ merge_v :: [[Double]] -> [[Double]]
 merge_v [] = []
 merge_v xs = merge_v' xs 0
     where
-        merge_v' (x:xs) index
-                | Data.Set.member index inserted_indexes = zero_row : merge_v' (x:xs) (index + 1)
-                | xs == []                               = [x]
-                | otherwise                              = x : merge_v' xs (index + 1)
+        merge_v' xs index
+                | Data.Set.member index inserted_indexes = zero_row : merge_v' xs (index + 1)
+                | xs == []                               = []
+                | otherwise                              = head xs : merge_v' (tail xs) (index + 1)
+
 
 padded_v :: Matrix Double
 padded_v = fromLists (merge_v (toLists v))
