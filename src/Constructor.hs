@@ -1,11 +1,18 @@
 module Constructor where
 
+-- Change the file imported as Structure for other Examples
+
+import PowerlineStructure as Structure
+
+
 import Numeric.LinearAlgebra
 import Data.List
 import Data.Set
 import Data.HashMap.Strict as M
-import PowerlineStructure as Structure
 
+-- The mode represents which natural frequency you want to animate
+
+mode = 1 :: Int
 
 nodes = M.fromList Structure.list_nodes
 edges = M.fromList Structure.list_edges
@@ -178,4 +185,4 @@ eigen_pairs = sort [(sqrt (maximum [0, eigenvalue] / (2 * pi)), eigenvector) | (
 
 to_animate :: [Double]
 freq :: Double
-(freq, to_animate) = head eigen_pairs
+(freq, to_animate) = eigen_pairs !! mode - 1
