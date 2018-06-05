@@ -4,6 +4,7 @@ import qualified Data.HashMap.Lazy as M
 import GHC.Float (double2Float, float2Int, int2Float)
 import Graphics.Gloss
 import Constructor
+import Numeric
 
 type Node       = (Int, (Float, Float))
 type Edge       = (Int, (Int, Int))
@@ -24,14 +25,13 @@ makeOffsets (x1:x2:xs) i    = (i,(x1, x2)) : makeOffsets xs (i+1)
 -- Display parameters
 
 width, height, winLoc :: Int
-width       = 500
-height      = 500
+width       = 800
+height      = 800
 winLoc      = 400
 leftShift   = (maxX + minX) / 2 :: Float
 topShift    = (maxY + minY) / 2 :: Float
 speed       = 3 :: Float
 amplitude   = 2 :: Float
---scale       = maxXY / (maxXY / int2Float (width + 50)) :: Float
 scale       = int2Float (width `div` ((float2Int maxXY) + 5))
 
 minX        = minimum (map fst (map snd (M.toList Animator.nodes)))
@@ -44,10 +44,13 @@ window :: Display
 window = InWindow "Vibration Display" (width, height) (winLoc, winLoc)
 
 background :: Color
-background = white
+background = light black
 
 trussColor :: Color
-trussColor = black
+trussColor = azure
+
+freqColor :: Color
+freqColor = orange
 
 -- Animation creation
 
@@ -55,7 +58,13 @@ start_animation :: IO ()
 start_animation = animate window background createTruss
 
 createTruss :: Float -> Picture
-createTruss time = Graphics.Gloss.scale Animator.scale Animator.scale (pictures (map (createLine time) (M.toList Constructor.edges)))
+createTruss time = Graphics.Gloss.scale Animator.scale Animator.scale (pictures (createPictures time))
+
+createPictures :: Float -> [Picture]
+createPictures time = (map (createLine time) (M.toList Constructor.edges)) ++ [createText]
+
+createText :: Picture
+createText = color freqColor $ Graphics.Gloss.translate (0 - (int2Float (width `div` float2Int(2 * Animator.scale)))) ((int2Float (height `div` float2Int(2 * Animator.scale))) - 4) (Graphics.Gloss.scale (1/100) (1/100) (text ("Freq: " ++ Numeric.showFFloat (Just 2) Constructor.freq "")))
 
 createLine :: Float -> Edge -> Picture
 createLine time (_, (a, b)) = color trussColor $ line [getPointLoc time a, getPointLoc time b]
