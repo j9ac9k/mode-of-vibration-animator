@@ -31,7 +31,7 @@ winLoc      = 400
 leftShift   = (maxX + minX) / 2 :: Float
 topShift    = (maxY + minY) / 2 :: Float
 speed       = 3 :: Float
-amplitude   = 2 :: Float
+amplitude   = 10 :: Float
 scale       = int2Float (width `div` ((float2Int maxXY) + 5))
 
 minX        = minimum (map fst (map snd (M.toList Animator.nodes)))
@@ -64,10 +64,10 @@ createPictures :: Float -> [Picture]
 createPictures time = (map (createLine time) (M.toList Constructor.edges)) ++ [createText]
 
 createText :: Picture
-createText = color freqColor $ Graphics.Gloss.translate (0 - (int2Float (width `div` float2Int(2 * Animator.scale)))) ((int2Float (height `div` float2Int(2 * Animator.scale))) - 4) (Graphics.Gloss.scale (1/100) (1/100) (text ("Freq: " ++ Numeric.showFFloat (Just 2) Constructor.freq "")))
+createText = color freqColor $ Graphics.Gloss.translate (0 - (int2Float (width `div` float2Int(2 * Animator.scale)))) ((int2Float (height `div` float2Int(2 * Animator.scale))) - 4) (Graphics.Gloss.scale (1/100) (1/100) (text ("Freq: " ++ Numeric.showFFloat (Just 2) Constructor.freq "" ++ " Hz")))
 
 createLine :: Float -> Edge -> Picture
 createLine time (_, (a, b)) = color trussColor $ line [getPointLoc time a, getPointLoc time b]
 
 getPointLoc :: Float -> Int -> Point
-getPointLoc time id = ((((fst (M.lookupDefault (0,0) id Animator.nodes)) + ((fst (M.lookupDefault (0,0) id xyOffsets))*(amplitude * (sin (speed * time))))) - leftShift),(((snd (M.lookupDefault (0,0) id Animator.nodes)) + ((snd (M.lookupDefault (0,0) id xyOffsets))*(amplitude * (sin (speed * time))))) - topShift))
+getPointLoc time id = ((((fst (M.lookupDefault (0, 0) id Animator.nodes)) + ((fst (M.lookupDefault (0, 0) id xyOffsets)) * (amplitude * (sin (speed * time))))) - leftShift), (((snd (M.lookupDefault (0, 0) id Animator.nodes)) + ((snd (M.lookupDefault (0, 0) id xyOffsets)) * (amplitude * (sin (speed * time))))) - topShift))
