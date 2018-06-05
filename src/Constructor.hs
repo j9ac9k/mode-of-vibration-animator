@@ -12,7 +12,7 @@ import Data.HashMap.Strict as M
 
 -- The mode represents which natural frequency you want to animate
 
-mode = 1 :: Int
+mode = 3 :: Int
 
 nodes = M.fromList Structure.list_nodes
 edges = M.fromList Structure.list_edges
