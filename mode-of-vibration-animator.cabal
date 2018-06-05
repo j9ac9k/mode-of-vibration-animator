@@ -1,0 +1,74 @@
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 979cf263c9498114a0bf0a3cff52bf7522040c3cde36bd5a2c2c4df401545cde
+
+name:           mode-of-vibration-animator
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/j9ac9k/mode-of-vibration-animator#readme>
+homepage:       https://github.com/j9ac9k/mode-of-vibration-animator#readme
+bug-reports:    https://github.com/j9ac9k/mode-of-vibration-animator/issues
+author:         Ognyan Moore, Patrick Wulfe
+maintainer:     ognyan.moore@gmail.com
+copyright:      2018 Ognyan Moore
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/j9ac9k/mode-of-vibration-animator
+
+library
+  exposed-modules:
+      Animator
+      Constructor
+      BridgeStructure
+      PowerlineStructure
+      SimpleStructure
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.11.0 && <5
+    , containers
+    , hmatrix >=0.19
+    , unordered-containers
+    , gloss >=1.12
+    , gloss-rendering >=1.12
+  default-language: Haskell2010
+
+executable vibration-animator
+  main-is: Main.hs
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11.0 && <5
+    , gloss >=1.12
+    , gloss-rendering >=1.12
+    , mode-of-vibration-animator
+    , unordered-containers
+  default-language: Haskell2010
+
+test-suite vibration-animator-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_mode_of_vibration_animator
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11.1 && <5
+    , containers
+    , gloss >=1.12
+    , gloss-rendering >=1.12
+    , hmatrix >=0.19
+    , mode-of-vibration-animator
+    , unordered-containers
+  default-language: Haskell2010
