@@ -44,10 +44,10 @@ window :: Display
 window = InWindow "Vibration Display" (width, height) (winLoc, winLoc)
 
 background :: Color
-background = black
+background = white
 
 trussColor :: Color
-trussColor = dark azure
+trussColor = black
 
 -- Animation creation
 

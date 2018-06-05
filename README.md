@@ -4,6 +4,8 @@
 
 The Mode of Vibration Animator takes in a file containing structure geometry, calculates the natural frequencies, and animates the mode of vibration. This project is largely a learning exercise for me to learn Haskell, and my submission for CS 557 Functional Languages at Portland State University.
 
+![Power Line 3rd Natural Frequency](example.gif "Animation Example")
+
 ## Installation
 
 Ubuntu linux
