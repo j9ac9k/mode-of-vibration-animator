@@ -185,4 +185,4 @@ eigen_pairs = sort [(sqrt (maximum [0, eigenvalue] / (2 * pi)), eigenvector) | (
 
 to_animate :: [Double]
 freq :: Double
-(freq, to_animate) = eigen_pairs !! mode - 1
+(freq, to_animate) = eigen_pairs !! (mode - 1)
